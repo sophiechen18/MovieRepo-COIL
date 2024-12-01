@@ -15,14 +15,6 @@ credits['movie_id'] = credits['movie_id'].astype(str).fillna('')
 # Merge the datasets on the 'movie_id' column
 movies = pd.merge(movies_metadata, credits, left_on='id', right_on='movie_id')
 
-# Check the data
-# print(movies.head())
-# print(movies_metadata['id'].isnull().sum())  # Should be 0 if there are no missing values
-# print(credits['movie_id'].isnull().sum()) 
-# print(movies_metadata[movies_metadata['id'].str.isnumeric() == False]['id'].unique())
-# print(credits[credits['movie_id'].str.isnumeric() == False]['movie_id'].unique())
-
-
 # Select important columns
 movies = movies[["movie_id", 'original_title', 'overview', 'genres', 'cast', 'crew', 'vote_average']]
 print(movies['original_title'])
