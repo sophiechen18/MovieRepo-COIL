@@ -5,8 +5,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Load the datasets
-movies_metadata = pd.read_csv('C:\\Users\\schen\\software-design\\MovieRepo-COIL\\tmdb_5000_movies.csv')
-credits = pd.read_csv('C:\\Users\\schen\\software-design\\MovieRepo-COIL\\tmdb_5000_credits.csv')
+movies_metadata = pd.read_csv('tmdb_5000_movies.csv')
+credits = pd.read_csv('tmdb_5000_credits.csv')
 
 # Convert the 'id' and 'movie_id' columns to strings, filling NaN values with a placeholder like an empty string
 movies_metadata['id'] = movies_metadata['id'].astype(str).fillna('')
@@ -44,7 +44,9 @@ cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
 # Function to get movie recommendations
 def get_recommendations(title, cosine_sim=cosine_sim):
-    idx = movies[movies['original_title'] == title].index[0]  # Get the index of the movie
+    title = title.lower()
+
+    idx = movies[movies['original_title'].str.lower() == title].index[0]  # Get the index of the movie
     sim_scores = list(enumerate(cosine_sim[idx]))    # Get similarity scores
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)  # Sort by similarity
     sim_scores = sim_scores[1:11]  # Get the top 10 similar movies
