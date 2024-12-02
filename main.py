@@ -79,7 +79,7 @@ col1, col2 = st.columns(2)
 
 # Input from the user
 with col1:
-    st.subheader("Enter a Movie Title")
+    st.subheader("Enter a movie title you would like similar recommendations for.")
     movie = st.text_input("Movie Title")
 
 with col2:
@@ -93,11 +93,3 @@ with col2:
             st.error("Movie not found.")
 
 
-if movie:
-    try:
-        recommendations = get_recommendations(movie)
-        st.write('Recommended Movies:')
-        for rec in recommendations:
-            st.write(rec)
-    except IndexError:
-        st.write('Movie not found in the dataset.')
