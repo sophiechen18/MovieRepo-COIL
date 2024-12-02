@@ -41,7 +41,7 @@ def get_recommendations(title, cosine_sim=cosine_sim):
     idx = movies[movies['original_title'].str.lower() == title].index[0]  # Get the index of the movie
     sim_scores = list(enumerate(cosine_sim[idx]))    # Get similarity scores
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)  # Sort by similarity
-    sim_scores = sim_scores[1:11]  # Get the top 10 similar movies
+    sim_scores = sim_scores[1:num_recommendations + 1]  # Get the top 10 similar movies
     movie_indices = [i[0] for i in sim_scores]  # Get the indices of these movies
 
     if show_genres:
@@ -70,10 +70,16 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+with st.sidebar:
+    st.header("Settings")
+    num_recommendations = st.slider("Number of Recommendations", 5, 20, 10)  # Default is 10
+    show_genres = st.checkbox("Show Genres", value=True)
+    
 col1, col2 = st.columns(2)
 
+# Input from the user
 with col1:
-    st.subheader("Enter a Movie")
+    st.subheader("Enter a Movie Title")
     movie = st.text_input("Movie Title")
 
 with col2:
@@ -86,13 +92,7 @@ with col2:
         except IndexError:
             st.error("Movie not found.")
 
-with st.sidebar:
-    st.header("Settings")
-    num_recommendations = st.slider("Number of Recommendations", 5, 20, 10)  # Default is 10
-    show_genres = st.checkbox("Show Genres", value=True)
 
-# Input from the user
-movie = st.text_input('Enter a movie title')
 if movie:
     try:
         recommendations = get_recommendations(movie)
