@@ -44,13 +44,52 @@ def get_recommendations(title, cosine_sim=cosine_sim):
     sim_scores = sim_scores[1:11]  # Get the top 10 similar movies
     movie_indices = [i[0] for i in sim_scores]  # Get the indices of these movies
 
-    recommended_movies = movies[['original_title', 'genres', 'overview', 'vote_average']].iloc[movie_indices].to_dict('records')
+    if show_genres:
+        recommended_movies = movies[['original_title', 'genres', 'overview', 'vote_average']].iloc[movie_indices].to_dict('records')
+    else:
+        recommended_movies = movies[['original_title', 'overview', 'vote_average']].iloc[movie_indices].to_dict('records')
     
     # Return the titles and additional info (e.g., genre, vote average)
     return recommended_movies
 
 # Streamlit app
-st.title('Movie Recommendation System')
+
+st.markdown(
+    """
+    <style>
+    .title {
+        text-align: center;
+        font-size: 36px;
+        font-weight: bold;
+        font-family: monospace;
+        color: ##A30B0B; /* Optional: Customize the color */
+    }
+    </style>
+    <h1 class="title">Movie Recommendation System</h1>
+    """,
+    unsafe_allow_html=True
+)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("Enter a Movie")
+    movie = st.text_input("Movie Title")
+
+with col2:
+    st.subheader("Results")
+    if movie:
+        try:
+            recommendations = get_recommendations(movie)
+            for rec in recommendations:
+                st.write(rec)
+        except IndexError:
+            st.error("Movie not found.")
+
+with st.sidebar:
+    st.header("Settings")
+    num_recommendations = st.slider("Number of Recommendations", 5, 20, 10)  # Default is 10
+    show_genres = st.checkbox("Show Genres", value=True)
 
 # Input from the user
 movie = st.text_input('Enter a movie title')
