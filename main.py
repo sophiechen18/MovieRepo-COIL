@@ -4,46 +4,52 @@ import ast
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+# Load the datasets
 movies_metadata = pd.read_csv('tmdb_5000_movies.csv')
 credits = pd.read_csv('tmdb_5000_credits.csv')
 
+# Convert the 'id' and 'movie_id' columns to strings, filling NaN values with a placeholder like an empty string
 movies_metadata['id'] = movies_metadata['id'].astype(str).fillna('')
 credits['movie_id'] = credits['movie_id'].astype(str).fillna('')
 
-# merge the datasets 
+# Merge the datasets on the 'movie_id' column
 movies = pd.merge(movies_metadata, credits, left_on='id', right_on='movie_id')
 
+# Select important columns
 movies = movies[["movie_id", 'original_title', 'overview', 'genres', 'cast', 'crew', 'vote_average']]
 print(movies['original_title'])
 
+# Handle missing values (e.g., filling NaNs with an empty string)
 movies['overview'] = movies['overview'].fillna('')
 
+# Convert 'genres', 'cast', and 'crew' from stringified lists to actual lists
 movies['genres'] = movies['genres'].apply(lambda x: [i['name'] for i in ast.literal_eval(x)] if isinstance(x, str) else [])
 movies['cast'] = movies['cast'].apply(lambda x: [i['name'] for i in ast.literal_eval(x)[:3]] if isinstance(x, str) else [])  # Get top 3 cast members
 movies['crew'] = movies['crew'].apply(lambda x: [i['name'] for i in ast.literal_eval(x) if i['job'] == 'Director'] if isinstance(x, str) else [])
 
+# Create the TF-IDF matrix for 'overview'
 tfidf = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf.fit_transform(movies['overview'])
 
-# similarity matrix
+# Calculate cosine similarity matrix
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-# get movie recommendations
+# Function to get movie recommendations
 def get_recommendations(title, cosine_sim=cosine_sim):
     title = title.lower()
 
-    idx = movies[movies['original_title'].str.lower() == title].index[0]  # get the index of the movie
-    sim_scores = list(enumerate(cosine_sim[idx]))    # get similarity scores
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)  # sort by similarity
-    sim_scores = sim_scores[1:num_recommendations + 1]  # get top 10 similar movies
-    movie_indices = [i[0] for i in sim_scores]  # get the indices of these movies
+    idx = movies[movies['original_title'].str.lower() == title].index[0]  # Get the index of the movie
+    sim_scores = list(enumerate(cosine_sim[idx]))    # Get similarity scores
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)  # Sort by similarity
+    sim_scores = sim_scores[1:num_recommendations + 1]  # Get the top 10 similar movies
+    movie_indices = [i[0] for i in sim_scores]  # Get the indices of these movies
 
     if show_genres:
         recommended_movies = movies[['original_title', 'genres', 'overview', 'vote_average']].iloc[movie_indices].to_dict('records')
     else:
         recommended_movies = movies[['original_title', 'overview', 'vote_average']].iloc[movie_indices].to_dict('records')
     
-    # return the titles and additional info (e.g., genre, vote average)
+    # Return the titles and additional info (e.g., genre, vote average)
     return recommended_movies
 
 # Streamlit app
@@ -56,7 +62,15 @@ st.markdown(
         font-size: 36px;
         font-weight: bold;
         font-family: monospace;
-        color: ##A30B0B; /* Optional: Customize the color */
+        color: #A30B0B;
+    }
+    .movie-container {
+        border: 5px solid #ddd;
+        border-radius: 8px;
+        border-color: #A30B0B;
+        padding: 15px;
+        margin-bottom: 10px;
+        background-color: #f9f9f9;
     }
     </style>
     <h1 class="title">Movie Recommendation System</h1>
@@ -64,26 +78,35 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
 with st.sidebar:
     st.header("Settings")
-    num_recommendations = st.slider("Number of Recommendations", 5, 20, 10)  # default suggestion number is 10
+    num_recommendations = st.slider("Number of Recommendations", 5, 20, 10)  # Default is 10
     show_genres = st.checkbox("Show Genres", value=True)
     
 col1, col2 = st.columns(2)
 
-# areas of user input 
-with col1:
-    st.text("Enter a movie title you would like similar recommendations for.")
-    movie = st.text_input("Movie Title")
+# Input from the user
 
-with col2:
-    st.subheader("Results")
-    if movie:
-        try:
-            recommendations = get_recommendations(movie)
-            for rec in recommendations:
-                st.write(rec)
-        except IndexError:
-            st.error("Movie not found.")
+st.subheader("Enter a Movie Title")
+movie = st.text_input("Movie Title")
 
 
+st.subheader("Results")
+if movie:
+    try:
+        recommendations = get_recommendations(movie)
+        for rec in recommendations:
+            st.markdown(
+                f"""
+                <div class="movie-container">
+                    <h3 style="margin-bottom: 5px;"><strong>🎬 {rec['original_title']}</strong></h3>
+                    <p>{"<b>Genres:</b> " + ", ".join(rec['genres']) if show_genres else ""}</p>
+                    <p><b>Overview:</b> {rec['overview']}</p>
+                    <p><b>Rating:</b> ⭐ {rec['vote_average']}</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+    except IndexError:
+        st.error("Movie not found in dataset.")
