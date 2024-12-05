@@ -73,6 +73,7 @@ col1, col2 = st.columns(2)
 
 # areas of user input 
 with col1:
+    st.text("TEST")
     st.text("Enter a movie title you would like similar recommendations for.")
     movie = st.text_input("Movie Title")
 
