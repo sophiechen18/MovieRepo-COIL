@@ -10,7 +10,7 @@ credits = pd.read_csv('tmdb_5000_credits.csv')
 movies_metadata['id'] = movies_metadata['id'].astype(str).fillna('')
 credits['movie_id'] = credits['movie_id'].astype(str).fillna('')
 
-# merge the datasets
+# merge the datasets 
 movies = pd.merge(movies_metadata, credits, left_on='id', right_on='movie_id')
 
 movies = movies[["movie_id", 'original_title', 'overview', 'genres', 'cast', 'crew', 'vote_average']]
