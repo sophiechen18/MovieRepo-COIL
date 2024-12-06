@@ -1,8 +1,12 @@
 import streamlit as st
 import pandas as pd
+import requests
 import ast
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
+TMDB_API_KEY = "da7812d5a36a96ec885b30dd3fcffe79"
+BASE_POSTER_URL = "https://image.tmdb.org/t/p/w500"
 
 # Load the datasets
 movies_metadata = pd.read_csv('tmdb_5000_movies.csv')
@@ -52,7 +56,27 @@ def get_recommendations(title, cosine_sim=cosine_sim):
     # Return the titles and additional info (e.g., genre, vote average)
     return recommended_movies
 
+def fetch_poster_from_tmdb(movie_title):
+    """
+    Fetch the movie poster URL from TMDB API using the movie title.
+    """
+    search_url = f"https://api.themoviedb.org/3/search/movie"
+    params = {
+        "api_key": TMDB_API_KEY,
+        "query": movie_title
+    }
+    response = requests.get(search_url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        if data['results']:
+            poster_path = data['results'][0].get('poster_path', None)
+            if poster_path:
+                return f"{BASE_POSTER_URL}{poster_path}"
+    return "https://via.placeholder.com/500x750?text=No+Image"  # Placeholder for missing images
+
 # Streamlit app
+
+page = st.sidebar.radio("Navigation", ["Home", "Recommendations"])
 
 st.markdown(
     """
@@ -62,51 +86,73 @@ st.markdown(
         font-size: 36px;
         font-weight: bold;
         font-family: monospace;
-        color: #A30B0B;
+        color: #63bef2;
+        background-color: white;
     }
     .movie-container {
         border: 5px solid #ddd;
         border-radius: 8px;
-        border-color: #A30B0B;
+        border-color: #63bef2;
         padding: 15px;
         margin-bottom: 10px;
         background-color: #f9f9f9;
     }
     </style>
-    <h1 class="title">Movie Recommendation System</h1>
     """,
     unsafe_allow_html=True
 )
 
+if page == "Home":
+    # Home Page: Display popular movies
+    st.title("Welcome to the Movie Recommendation System")
+    st.subheader("Popular Movies")
+    popular_movies = [
+        "Inception", "The Dark Knight", "Avatar", "Interstellar", "Titanic", 
+        "Inside Out", "Iron Man", "Frozen", "The Avengers", "The Matrix", 
+        "Pulp Fiction", "Forrest Gump", "The Lion King", "Toy Story", "Shrek"
+    ]
 
-with st.sidebar:
-    st.header("Settings")
-    num_recommendations = st.slider("Number of Recommendations", 5, 20, 10)  # Default is 10
-    show_genres = st.checkbox("Show Genres", value=True)
-    
-col1, col2 = st.columns(2)
+    num_columns = 5
+    rows = [popular_movies[i:i + num_columns] for i in range(0, len(popular_movies), num_columns)]
+
+    for row in rows:
+        cols = st.columns(num_columns)
+        for col, title in zip(cols, row):
+            poster_url = fetch_poster_from_tmdb(title)
+            col.image(poster_url, caption=title, use_container_width=True)
 
 # Input from the user
 
-st.subheader("Enter a Movie Title")
-movie = st.text_input("Movie Title")
+elif page == "Recommendations":
+    with st.sidebar:
+        st.header("Settings")
+        num_recommendations = st.slider("Number of Recommendations", 5, 20, 10)  # Default is 10
+        show_genres = st.checkbox("Show Genres", value=True)
+    
+    # Recommendations Page
+    st.title("Movie Recommendations")
+    st.subheader("Enter a Movie Title")
+    movie = st.text_input("Movie Title")
 
-
-st.subheader("Results")
-if movie:
-    try:
-        recommendations = get_recommendations(movie)
-        for rec in recommendations:
-            st.markdown(
-                f"""
-                <div class="movie-container">
-                    <h3 style="margin-bottom: 5px;"><strong>🎬 {rec['original_title']}</strong></h3>
-                    <p>{"<b>Genres:</b> " + ", ".join(rec['genres']) if show_genres else ""}</p>
-                    <p><b>Overview:</b> {rec['overview']}</p>
-                    <p><b>Rating:</b> ⭐ {rec['vote_average']}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-    except IndexError:
-        st.error("Movie not found in dataset.")
+    if movie:
+        try:
+            recommendations = get_recommendations(movie)
+            for rec in recommendations:
+                poster_url = fetch_poster_from_tmdb(rec['original_title'])
+                st.markdown(
+                    f"""
+                    <div class="movie-container">
+                        <img src="{poster_url}" style="width:200px; float:left; margin-right:20px; border-radius:8px;">
+                        <h3 style="margin-bottom: 5px;"><strong>🎬 {rec['original_title']}</strong></h3>
+                        <p>{"<b>Genres:</b> " + ", ".join(rec['genres']) if show_genres else ""}</p>
+                        <p><b>Overview:</b> {rec['overview']}</p>
+                        <p><b>Rating:</b> ⭐ {rec['vote_average']}</p>
+                        <div style="clear:both;"></div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+        except IndexError:
+            st.error("Movie not found in dataset.")
+    else:
+        st.info("Enter a movie title to get recommendations.")
