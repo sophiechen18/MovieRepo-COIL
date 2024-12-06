@@ -1,7 +1,7 @@
 [theme]
 base="light"  # Options: "light" or "dark"
-primaryColor="#A30B0B"
-backgroundColor="#000000"
+primaryColor="#1383c2"
+backgroundColor="#FFFFFF"
 secondaryBackgroundColor="#E8E8E8"
-textColor="#A30B0B"
+textColor="#63bef2"
 font="monospace"
