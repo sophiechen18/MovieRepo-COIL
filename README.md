@@ -7,7 +7,7 @@ Our dataset is based off of this Google Colab notebook: https://colab.research.g
 
 To run this project, you will need Streamlit and a version of Python 3.8 or higher. 
 
-#Install Streamlit
+# Install Streamlit
 In your termincal, enter these commands
 ```
 pip install streamlit
@@ -18,7 +18,7 @@ python --version
 ```
 To download and install the latest version of Python, check out this article here: https://www.geeksforgeeks.org/download-and-install-python-3-latest-version/
 
-#Run the Program
+# Run the Program
 Clone this Git Repo using the green "Clone" button or copying the URL link
 ```
 git clone [repository link]
