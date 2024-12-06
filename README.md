@@ -5,22 +5,29 @@ Our dataset is based off of this Google Colab notebook: https://colab.research.g
 
 ## Instructions
 
-To run this project, you will need to install streamlit and clone this repository, preferably to your desktop, using these commands:
+To run this project, you will need Streamlit and a version of Python 3.8 or higher. 
 
+#Install Streamlit
+In your termincal, enter these commands
 ```
 pip install streamlit
+```
+To check your Python version, type
+```
+python --version
+```
+To download and install the latest version of Python, check out this article here: https://www.geeksforgeeks.org/download-and-install-python-3-latest-version/
 
+#Run the Program
+Clone this Git Repo using the green "Clone" button or copying the URL link
+```
 git clone [repository link]
 ```
-
-Change the directory to the project folder:
-
+Navigate to whereever you saved the project folder:
 ```
 cd MovieRepo-COIL
 ```
-
 To run the project, type the command:
-
 ```
 streamlit run main.py
 ```
